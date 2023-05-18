@@ -31,11 +31,6 @@ public struct ChartResponse: Decodable {
             error = nil
         }
     }
-    
-    public init(data: [ChartData]?, error: ErrorResponse?) {
-        self.data = data
-        self.error = error
-    }
 }
 
 public struct ChartData: Decodable {
@@ -63,29 +58,28 @@ public struct ChartData: Decodable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         meta = try container.decode(ChartMeta.self, forKey: .meta)
         
-        
         let timestamps = try container.decodeIfPresent([Date].self, forKey: .timestamp) ?? []
         
         if let indicatorsContainer = try? container.nestedContainer(keyedBy: IndicatorsKeys.self, forKey: .indicators),
            var quotes = try? indicatorsContainer.nestedUnkeyedContainer(forKey: .quote),
            let quoteContainer = try? quotes.nestedContainer(keyedBy: QuoteKeys.self) {
             
+            
             let highs = try quoteContainer.decodeIfPresent([Double?].self, forKey: .high) ?? []
             let lows = try quoteContainer.decodeIfPresent([Double?].self, forKey: .low) ?? []
             let opens = try quoteContainer.decodeIfPresent([Double?].self, forKey: .open) ?? []
             let closes = try quoteContainer.decodeIfPresent([Double?].self, forKey: .close) ?? []
             
-            self.indicators = timestamps.enumerated().compactMap { (offset, timestamp) in
+            indicators = timestamps.enumerated().compactMap { (offset, timestamp) in
                 guard
                     let open = opens[offset],
+                    let low = lows[offset],
                     let close = closes[offset],
-                    let high = highs[offset],
-                    let low = lows[offset]
-                else { return nil }
+                    let high = highs[offset]
+                else { return nil}
                 
                 return .init(timestamp: timestamp, open: open, high: high, low: low, close: close)
             }
-            
         } else {
             self.indicators = []
         }
@@ -139,8 +133,8 @@ public struct ChartMeta: Decodable {
         let currentTradingPeriodContainer = try? container.nestedContainer(keyedBy: CurrentTradingKeys.self, forKey: .currentTradingPeriod)
         let regularTradingPeriodContainer = try? currentTradingPeriodContainer?.nestedContainer(keyedBy: TradingPeriodKeys.self, forKey: .regular)
         
-        self.regularTradingPeriodStartDate = try regularTradingPeriodContainer?.decodeIfPresent(Date.self, forKey: .start) ?? Date()
-        self.regularTradingPeriodEndDate = try regularTradingPeriodContainer?.decodeIfPresent(Date.self, forKey: .end) ?? Date()
+        self.regularTradingPeriodStartDate = try regularTradingPeriodContainer?.decode(Date.self, forKey: .start) ?? Date()
+        self.regularTradingPeriodEndDate = try regularTradingPeriodContainer?.decode(Date.self, forKey: .end) ?? Date()
     }
 }
 

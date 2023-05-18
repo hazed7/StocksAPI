@@ -9,20 +9,24 @@ import Foundation
 import StocksAPI
 
 @main
-struct StocksAPIExec {
-    static let stocksAPI = StocksAPI()
-    
+struct XCAStocksExec {
+    private static let api = StocksAPI()
     static func main() async {
         do {
-//            let quotes = try await stocksAPI.fetchQuotes(symbols: "APPL,GOOG,TSLA")
-//            print(quotes)
+            let apple1dChart = try await api
+                .fetchChartData(tickerSymbol: "AAPL", range: .oneDay)
+
+            print(apple1dChart ?? "Not Found")
             
-//            let tickers = try await stocksAPI.searchTickers(query: "tesla")
-//            print(tickers)
+
+            let tickers = try await api
+                .searchTickers(query: "TESLA")
+            print(tickers)
             
-            if let chart = try await stocksAPI.fetchChartData(symbol: "AAPL", range: .oneDay) {
-                print(chart)
-            }
+
+            let quotes = try await api
+                .fetchQuotes(symbols: "AAPL,TSLA,GOOG,MSFT")
+            print(quotes)
         } catch {
             print(error.localizedDescription)
         }

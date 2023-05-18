@@ -7,20 +7,27 @@
 
 import Foundation
 
-public enum APIError: CustomNSError {
+public struct ErrorResponse: Decodable {
+    public let code: String
+    public let description: String
+    
+    public init(code: String, description: String) {
+        self.code = code
+        self.description = description
+    }
+}
+
+public enum APIServiceError: CustomNSError {
     case invalidURL
     case invalidResponseType
     case httpStatusCodeFailed(statusCode: Int, error: ErrorResponse?)
     
-    public static var errorDomain: String {
-        "StocksAPI"
-    }
-    
+    public static var errorDomain: String { "StocksAPI" }
     public var errorCode: Int {
         switch self {
-        case .invalidURL: return 0
-        case .invalidResponseType: return 1
-        case .httpStatusCodeFailed: return 2
+        case .invalidURL: return 1
+        case .invalidResponseType: return 2
+        case .httpStatusCodeFailed: return 3
         }
     }
     
@@ -31,12 +38,12 @@ public enum APIError: CustomNSError {
         case .invalidURL:
             text = "Invalid URL"
         case .invalidResponseType:
-            text = "Invalid response type"
+            text = "Invalid Response Type"
         case let .httpStatusCodeFailed(statusCode, error):
             if let error = error {
-                text = "Error. Status Code: \(statusCode), message: \(error.description)"
+                text = "Error: Status Code\(error.code), message: \(error.description)"
             } else {
-                text = "Error. Status Code: \(statusCode)"
+                text = "Error: Status Code \(statusCode)"
             }
         }
         
